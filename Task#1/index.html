@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Collapsible Sidebar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --sidebar-width: 260px;
+      --sidebar-bg: #111827;
+      --sidebar-accent: #3b82f6;
+      --sidebar-text: #e5e7eb;
+      --sidebar-muted: #9ca3af;
+      --transition-fast: 220ms ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Layout wrapper */
+    .app {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: radial-gradient(circle at top left, #1f2937, #020617);
+      border-right: 1px solid rgba(148, 163, 184, 0.2);
+      display: flex;
+      flex-direction: column;
+      padding: 1.25rem 1rem;
+      position: fixed;
+      inset-block: 0;
+      left: 0;
+      z-index: 20;
+      transform: translateX(0);
+      transition: transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+      box-shadow: 0 0 0 rgba(15, 23, 42, 0);
+    }
+
+    .sidebar--closed {
+      transform: translateX(-100%);
+      box-shadow: 0 0 0 rgba(15, 23, 42, 0);
+    }
+
+    .sidebar--open {
+      box-shadow: 18px 0 45px rgba(15, 23, 42, 0.8);
+    }
+
+    /* Logo / header */
+    .sidebar__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar__brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .sidebar__logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 0.9rem;
+      background: conic-gradient(
+        from 210deg,
+        #3b82f6,
+        #22c55e,
+        #a855f7,
+        #3b82f6
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.6);
+    }
+
+    .sidebar__title {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .sidebar__subtitle {
+      font-size: 0.75rem;
+      color: var(--sidebar-muted);
+    }
+
+    /* Toggle button (inside sidebar header for close on mobile) */
+    .btn {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 999px;
+      color: var(--sidebar-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.7rem;
+      transition: background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    }
+
+    .btn:hover {
+      background: rgba(30, 64, 175, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.5);
+    }
+
+    .btn span.icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    /* Nav list */
+    .sidebar__nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: auto;
+    }
+
+    .sidebar__item {
+      position: relative;
+    }
+
+    .sidebar__link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 0.9rem;
+      text-decoration: none;
+      color: var(--sidebar-text);
+      font-size: 0.86rem;
+      position: relative;
+      overflow: hidden;
+      transition: background var(--transition-fast),
+        color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .sidebar__link::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        rgba(59, 130, 246, 0.2),
+        rgba(168, 85, 247, 0.2)
+      );
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .sidebar__link:hover::before {
+      opacity: 1;
+    }
+
+    .sidebar__link:hover {
+      transform: translateY(-1px);
+    }
+
+    .sidebar__link--active {
+      background: radial-gradient(circle at top left, #1d4ed8, #0f172a);
+      color: #f9fafb;
+      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.7);
+    }
+
+    .sidebar__icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 0.8rem;
+      background: rgba(15, 23, 42, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #93c5fd;
+      font-size: 0.85rem;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .sidebar__link--active .sidebar__icon {
+      background: rgba(15, 23, 42, 0.96);
+      border-color: rgba(191, 219, 254, 0.9);
+      color: #bfdbfe;
+    }
+
+    .sidebar__label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .sidebar__label-main {
+      font-weight: 500;
+    }
+
+    .sidebar__label-sub {
+      font-size: 0.7rem;
+      color: var(--sidebar-muted);
+    }
+
+    /* Footer section inside sidebar */
+    .sidebar__footer {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed rgba(148, 163, 184, 0.4);
+      font-size: 0.7rem;
+      color: var(--sidebar-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .sidebar__pill {
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 0.65rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .sidebar__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.35);
+    }
+
+    /* Top bar (main content header) */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: radial-gradient(circle at top, #020617, #020617);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar__title {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: #9ca3af;
+    }
+
+    /* Hamburger button (visible on mobile) */
+    .topbar__menu-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      cursor: pointer;
+      transition: background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    }
+
+    .topbar__menu-btn:hover {
+      background: rgba(30, 64, 175, 0.95);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.7);
+      transform: translateY(-1px);
+    }
+
+    .topbar__menu-icon {
+      width: 16px;
+      height: 12px;
+      position: relative;
+    }
+
+    .topbar__menu-icon span {
+      position: absolute;
+      inset-inline: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      transition: transform var(--transition-fast),
+        opacity var(--transition-fast), top var(--transition-fast),
+        bottom var(--transition-fast);
+    }
+
+    .topbar__menu-icon span:nth-child(1) {
+      top: 0;
+    }
+
+    .topbar__menu-icon span:nth-child(2) {
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .topbar__menu-icon span:nth-child(3) {
+      bottom: 0;
+    }
+
+    /* Animate hamburger when sidebar open */
+    .sidebar-open .topbar__menu-icon span:nth-child(1) {
+      top: 50%;
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .sidebar-open .topbar__menu-icon span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .sidebar-open .topbar__menu-icon span:nth-child(3) {
+      bottom: 50%;
+      transform: translateY(50%) rotate(-45deg);
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      min-height: 100vh;
+      margin-left: 0;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top left, #020617, #000000);
+      transition: margin-left var(--transition-fast);
+    }
+
+    /* When sidebar is open (any screen size), push main content over */
+    .sidebar-open .main {
+      margin-left: var(--sidebar-width);
+    }
+
+    .main__body {
+      padding: 1.5rem 1.2rem 2.5rem;
+      max-width: 960px;
+    }
+
+    .card {
+      background: radial-gradient(circle at top right, #111827, #020617);
+      border-radius: 1.1rem;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.9);
+      padding: 1.4rem 1.4rem 1.6rem;
+    }
+
+    .card__title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .card__subtitle {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 1.25rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.72rem;
+    }
+
+    .pill-row span {
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #d1d5db;
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    .card__section-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+      margin-bottom: 0.35rem;
+    }
+
+    .card__list {
+      list-style: none;
+      font-size: 0.86rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .card__list li::before {
+      content: "•";
+      margin-right: 0.4rem;
+      color: #4b9cff;
+    }
+
+    /* Overlay for mobile when sidebar open */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.2), transparent)
+        , rgba(15, 23, 42, 0.75);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-fast);
+      z-index: 10;
+    }
+
+    .overlay--visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* RESPONSIVE BEHAVIOR */
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        margin: 0;
+      }
+
+      .main {
+        margin-left: 0;
+      }
+    }
+
+    @media (min-width: 769px) {
+      /* Desktop: sidebar can still collapse, keep it sticky when visible */
+      .sidebar {
+        position: sticky;
+        top: 0;
+        box-shadow: none;
+      }
+      .overlay {
+        display: none;
+      }
+      .sidebar__header .btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="sidebar-open">
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar sidebar--open" id="sidebar">
+      <header class="sidebar__header">
+        <div class="sidebar__brand">
+          <div class="sidebar__logo">EV</div>
+          <div>
+            <div class="sidebar__title">Evvolve</div>
+            <div class="sidebar__subtitle">Navigation</div>
+          </div>
+        </div>
+        <!-- Close button (mobile) -->
+        <button class="btn" id="sidebarCloseBtn" type="button">
+          <span class="icon">×</span>
+          Close
+        </button>
+      </header>
+
+      <ul class="sidebar__nav">
+        <li class="sidebar__item">
+          <a href="#" class="sidebar__link sidebar__link--active">
+            <span class="sidebar__icon">🏠</span>
+            <span class="sidebar__label">
+              <span class="sidebar__label-main">Dashboard</span>
+              <span class="sidebar__label-sub">Overview & insights</span>
+            </span>
+          </a>
+        </li>
+        <li class="sidebar__item">
+          <a href="#" class="sidebar__link">
+            <span class="sidebar__icon">📁</span>
+            <span class="sidebar__label">
+              <span class="sidebar__label-main">Projects</span>
+              <span class="sidebar__label-sub">Active & archived</span>
+            </span>
+          </a>
+        </li>
+        <li class="sidebar__item">
+          <a href="#" class="sidebar__link">
+            <span class="sidebar__icon">📊</span>
+            <span class="sidebar__label">
+              <span class="sidebar__label-main">Analytics</span>
+              <span class="sidebar__label-sub">Performance metrics</span>
+            </span>
+          </a>
+        </li>
+        <li class="sidebar__item">
+          <a href="#" class="sidebar__link">
+            <span class="sidebar__icon">👥</span>
+            <span class="sidebar__label">
+              <span class="sidebar__label-main">Team</span>
+              <span class="sidebar__label-sub">Members & roles</span>
+            </span>
+          </a>
+        </li>
+        <li class="sidebar__item">
+          <a href="#" class="sidebar__link">
+            <span class="sidebar__icon">⚙️</span>
+            <span class="sidebar__label">
+              <span class="sidebar__label-main">Settings</span>
+              <span class="sidebar__label-sub">Configuration</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+
+      <footer class="sidebar__footer">
+        <div class="sidebar__pill">
+          <span class="sidebar__dot"></span>
+          <span>Sidebar ready • JS toggle</span>
+        </div>
+        <span>v1.0</span>
+      </footer>
+    </aside>
+
+    <!-- Dim overlay when sidebar is open (mobile) -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main content -->
+    <main class="main">
+      <header class="topbar">
+        <button
+          class="topbar__menu-btn"
+          id="menuToggleBtn"
+          type="button"
+          aria-label="Toggle sidebar"
+        >
+          <div class="topbar__menu-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </button>
+        <div class="topbar__title">
+          Collapsible Sidebar • HTML · CSS · JavaScript
+        </div>
+      </header>
+
+      <section class="main__body">
+        <div class="card">
+          <h1 class="card__title">Task #1 — Collapsible Sidebar</h1>
+          <p class="card__subtitle">
+            Responsive sidebar with smooth open/close animation and simple toggle
+            logic.
+          </p>
+
+          <div class="pill-row">
+            <span>HTML</span>
+            <span>CSS</span>
+            <span>JavaScript</span>
+            <span>Component Layout</span>
+            <span>Animation</span>
+            <span>Toggle Logic</span>
+          </div>
+
+          <div style="margin-bottom: 1.1rem;">
+            <div class="card__section-title">Covered Topics</div>
+            <ul class="card__list">
+              <li>Building a reusable sidebar component with semantic HTML.</li>
+              <li>Using modern CSS layout (flex, sticky, gradients) and transitions.</li>
+              <li>Adding JavaScript click handlers to control open/close state.</li>
+              <li>Handling mobile vs. desktop with media queries.</li>
+            </ul>
+          </div>
+
+          <div>
+            <div class="card__section-title">How to use</div>
+            <ul class="card__list">
+              <li>On mobile, tap the top-left menu button to open or close the sidebar.</li>
+              <li>On desktop (≥ 769px), the sidebar stays open and acts as a static navigation.</li>
+              <li>Use the placeholder logo area and links to plug in your real app navigation.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const body = document.body;
+    const sidebar = document.getElementById("sidebar");
+    const menuToggleBtn = document.getElementById("menuToggleBtn");
+    const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
+    const overlay = document.getElementById("overlay");
+
+    function openSidebar() {
+      sidebar.classList.remove("sidebar--closed");
+      sidebar.classList.add("sidebar--open");
+      body.classList.add("sidebar-open");
+      overlay.classList.add("overlay--visible");
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove("sidebar--open");
+      sidebar.classList.add("sidebar--closed");
+      body.classList.remove("sidebar-open");
+      overlay.classList.remove("overlay--visible");
+    }
+
+    function toggleSidebar() {
+      const isClosed = sidebar.classList.contains("sidebar--closed");
+      if (isClosed) {
+        openSidebar();
+      } else {
+        closeSidebar();
+      }
+    }
+
+    // Initial state: open on desktop, closed on small screens
+    function setInitialSidebarState() {
+      if (window.innerWidth <= 768) {
+        closeSidebar();
+      } else {
+        sidebar.classList.remove("sidebar--closed");
+        sidebar.classList.add("sidebar--open");
+        body.classList.add("sidebar-open");
+        overlay.classList.remove("overlay--visible");
+      }
+    }
+
+    menuToggleBtn.addEventListener("click", toggleSidebar);
+    sidebarCloseBtn.addEventListener("click", closeSidebar);
+    overlay.addEventListener("click", closeSidebar);
+    window.addEventListener("resize", setInitialSidebarState);
+
+    // On first load
+    setInitialSidebarState();
+  </script>
+</body>
+</html>
