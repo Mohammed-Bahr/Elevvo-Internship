@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wandering Mind — A Personal Blog</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1208;
+    --paper: #f7f3ec;
+    --cream: #ede8df;
+    --accent: #c0392b;
+    --accent-warm: #e67e22;
+    --muted: #8a7f72;
+    --card-bg: #ffffff;
+    --shadow: 0 2px 20px rgba(26,18,8,0.08);
+    --shadow-hover: 0 8px 40px rgba(26,18,8,0.16);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    gap: 1.5rem;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--accent-warm); font-style: italic; }
+
+  /* Search */
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 380px;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.6rem;
+    border-radius: 999px;
+    border: 1.5px solid rgba(247,243,236,0.15);
+    background: rgba(247,243,236,0.08);
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .search-wrap input::placeholder { color: rgba(247,243,236,0.45); }
+  .search-wrap input:focus {
+    border-color: var(--accent-warm);
+    background: rgba(247,243,236,0.12);
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    pointer-events: none;
+    font-size: 0.9rem;
+  }
+
+  /* Nav links */
+  nav { display: flex; gap: 1.5rem; flex-shrink: 0; }
+  nav a {
+    color: rgba(247,243,236,0.7);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--paper); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 120%, rgba(192,57,43,0.25) 0%, transparent 65%),
+                radial-gradient(ellipse at 20% -20%, rgba(230,126,34,0.15) 0%, transparent 55%);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+  .hero-eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .hero h1 em { color: var(--accent-warm); font-style: italic; }
+  .hero p {
+    font-size: 1.05rem;
+    color: rgba(247,243,236,0.65);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+
+  /* ── FILTER PILLS ── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .filter-label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-right: 0.4rem;
+  }
+  .pill {
+    padding: 0.38rem 1rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--cream);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .pill:hover { border-color: var(--ink); color: var(--ink); }
+  .pill.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+
+  /* ── RESULTS INFO ── */
+  .results-info {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    min-height: 1.2em;
+  }
+  .results-info strong { color: var(--ink); }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.25s, box-shadow 0.25s;
+    display: flex;
+    flex-direction: column;
+    animation: fadeUp 0.35s ease both;
+  }
+  .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    background: var(--cream);
+  }
+  .card-img-placeholder {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    flex-shrink: 0;
+  }
+  .card-body { padding: 1.4rem 1.5rem 1.6rem; flex: 1; display: flex; flex-direction: column; }
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+  }
+  .category-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+  .card-date { font-size: 0.8rem; color: var(--muted); }
+  .card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    line-height: 1.35;
+    margin-bottom: 0.6rem;
+    color: var(--ink);
+  }
+  .card p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.65;
+    flex: 1;
+    margin-bottom: 1.2rem;
+  }
+  .read-more {
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: gap 0.2s;
+  }
+  .read-more:hover { gap: 0.6rem; }
+
+  /* Category colors */
+  .cat-tech    { background: #e8f4fd; color: #2980b9; }
+  .cat-travel  { background: #eafaf1; color: #27ae60; }
+  .cat-food    { background: #fef9e7; color: #d4ac0d; }
+  .cat-life    { background: #fdf2f8; color: #9b59b6; }
+  .cat-design  { background: #fef0e6; color: #e67e22; }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .empty p { color: var(--muted); font-size: 0.9rem; }
+
+  /* ── PAGINATION ── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .page-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1.5px solid var(--cream);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .page-btn:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+  .page-btn.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .page-btn.arrow { font-size: 1rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(247,243,236,0.5);
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.85rem;
+  }
+  footer strong { color: var(--paper); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .header-inner { flex-wrap: wrap; height: auto; padding: 0.8rem 0; gap: 0.8rem; }
+    nav { display: none; }
+    .search-wrap { max-width: 100%; flex: 1 1 100%; order: 3; }
+    .hero { padding: 3.5rem 1.5rem 3rem; }
+    main { padding: 2rem 1rem 4rem; }
+    .grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">Wandering <span>Mind</span></div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search posts by title…" autocomplete="off">
+    </div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Archive</a>
+      <a href="#">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">✦ Personal Blog ✦</p>
+    <h1>Stories worth <em>reading</em>,<br>thoughts worth sharing.</h1>
+    <p>Dispatches from the intersection of technology, travel, culture, and everyday life.</p>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <button class="pill active" data-cat="All">All</button>
+    <button class="pill" data-cat="Tech">Tech</button>
+    <button class="pill" data-cat="Travel">Travel</button>
+    <button class="pill" data-cat="Food">Food</button>
+    <button class="pill" data-cat="Life">Life</button>
+    <button class="pill" data-cat="Design">Design</button>
+  </div>
+
+  <!-- RESULTS INFO -->
+  <p class="results-info" id="resultsInfo"></p>
+
+  <!-- GRID -->
+  <div class="grid" id="grid"></div>
+
+  <!-- PAGINATION -->
+  <div class="pagination" id="pagination"></div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p>Made with ♥ by <strong>Wandering Mind</strong> · © 2025 · All rights reserved.</p>
+</footer>
+
+<script>
+  // ── DATA ──────────────────────────────────────────────────────────────
+  const posts = [
+    { id:1,  title:"Building a Second Brain with Obsidian",        category:"Tech",   date:"Jan 12, 2025", emoji:"🧠", desc:"A practical guide to setting up a personal knowledge management system that actually sticks — no PhD required.", color:"#e8f4fd" },
+    { id:2,  title:"48 Hours in Porto: A Love Letter",             category:"Travel", date:"Jan 5, 2025",  emoji:"🏛️", desc:"Azulejo tiles, pastel de nata, and the best sunset I've ever seen. Portugal's second city stole my heart.", color:"#eafaf1" },
+    { id:3,  title:"Sourdough for the Impatient",                  category:"Food",   date:"Dec 28, 2024", emoji:"🍞", desc:"After three failed loaves and one smoke alarm, I finally cracked the code. Here's the shortcut no one tells you.", color:"#fef9e7" },
+    { id:4,  title:"Why I Deleted All Social Media (Again)",       category:"Life",   date:"Dec 20, 2024", emoji:"📵", desc:"It's been 90 days. Here's what changed, what didn't, and whether I'll ever go back.", color:"#fdf2f8" },
+    { id:5,  title:"The Art of Reading Design in the Wild",        category:"Design", date:"Dec 14, 2024", emoji:"👁️", desc:"Train your eye by treating every public space as a design critique. A beginner's guide to visual literacy.", color:"#fef0e6" },
+    { id:6,  title:"React Server Components: Hype vs Reality",     category:"Tech",   date:"Dec 8, 2024",  emoji:"⚛️", desc:"I rebuilt a production app with RSC. The DX wins are real. The gotchas are painful. Here's my honest take.", color:"#e8f4fd" },
+    { id:7,  title:"Tokyo on a Budget (Actually Possible)",        category:"Travel", date:"Nov 30, 2024", emoji:"🗼", desc:"Japan's capital doesn't have to break the bank. My street food, free temples, and cheap transport playbook.", color:"#eafaf1" },
+    { id:8,  title:"Ramen from Scratch: 18-Hour Broth",            category:"Food",   date:"Nov 22, 2024", emoji:"🍜", desc:"A weekend project that turns into an obsession. The tonkotsu recipe I've been refining for two years.", color:"#fef9e7" },
+    { id:9,  title:"Slow Mornings: A 30-Day Experiment",           category:"Life",   date:"Nov 15, 2024", emoji:"☕", desc:"No alarm, no phone, no rush. What happens when you let the morning unfold at its own pace for a whole month.", color:"#fdf2f8" },
+    { id:10, title:"Figma Variables Changed My Workflow",          category:"Design", date:"Nov 8, 2024",  emoji:"🎨", desc:"Design tokens inside Figma sounded like overkill — until I used them on a real project. Here's the difference.", color:"#fef0e6" },
+    { id:11, title:"Git Hooks That Actually Save Time",            category:"Tech",   date:"Nov 1, 2024",  emoji:"🔧", desc:"Pre-commit, commit-msg, pre-push — a curated set of hooks that catch bugs before your team sees them.", color:"#e8f4fd" },
+    { id:12, title:"One Week in Marrakech",                        category:"Travel", date:"Oct 25, 2024", emoji:"🕌", desc:"Getting lost in the medina, bargaining in the souks, and finding the best mint tea in a city of a thousand secrets.", color:"#eafaf1" },
+    { id:13, title:"The Perfect Neapolitan Pizza at Home",         category:"Food",   date:"Oct 18, 2024", emoji:"🍕", desc:"You don't need a wood-fired oven. You need the right flour, the right hydration, and a screaming-hot cast iron.", color:"#fef9e7" },
+    { id:14, title:"Books That Rewired How I Think",               category:"Life",   date:"Oct 10, 2024", emoji:"📚", desc:"10 books that didn't just entertain but fundamentally shifted the way I see work, relationships, and time.", color:"#fdf2f8" },
+    { id:15, title:"Typography Rules Every Developer Should Know", category:"Design", date:"Oct 3, 2024",  emoji:"✏️", desc:"You don't need to be a designer to use type well. Five principles that will instantly improve any UI you build.", color:"#fef0e6" },
+    { id:16, title:"Mastering the Terminal in 2025",               category:"Tech",   date:"Sep 26, 2024", emoji:"💻", desc:"zsh, tmux, fzf, and a sprinkle of automation. The terminal setup that makes me feel like a wizard every single day.", color:"#e8f4fd" },
+    { id:17, title:"Roadtrip: Coastal Norway in September",        category:"Travel", date:"Sep 18, 2024", emoji:"🌊", desc:"Fjords, ferries, and fisherman's cottages. The most dramatic landscape I've ever driven through.", color:"#eafaf1" },
+    { id:18, title:"Fermenting Everything in My Kitchen",          category:"Food",   date:"Sep 10, 2024", emoji:"🫙", desc:"Kimchi, kombucha, and a mysterious miso that's been aging for six months. The science and joy of fermentation.", color:"#fef9e7" },
+  ];
+
+  const POSTS_PER_PAGE = 6;
+  let currentCategory = "All";
+  let currentSearch   = "";
+  let currentPage     = 1;
+
+  // ── HELPERS ───────────────────────────────────────────────────────────
+  function categoryClass(cat) {
+    return { Tech:"cat-tech", Travel:"cat-travel", Food:"cat-food", Life:"cat-life", Design:"cat-design" }[cat] || "";
+  }
+
+  function filteredPosts() {
+    return posts.filter(p => {
+      const matchCat    = currentCategory === "All" || p.category === currentCategory;
+      const matchSearch = p.title.toLowerCase().includes(currentSearch.toLowerCase());
+      return matchCat && matchSearch;
+    });
+  }
+
+  // ── RENDER GRID ───────────────────────────────────────────────────────
+  function renderGrid() {
+    const grid = document.getElementById("grid");
+    const info = document.getElementById("resultsInfo");
+    const all  = filteredPosts();
+    const total = all.length;
+    const totalPages = Math.max(1, Math.ceil(total / POSTS_PER_PAGE));
+
+    if (currentPage > totalPages) currentPage = 1;
+
+    const start  = (currentPage - 1) * POSTS_PER_PAGE;
+    const page   = all.slice(start, start + POSTS_PER_PAGE);
+
+    // Results info
+    if (total === 0) {
+      info.innerHTML = "";
+    } else {
+      const showing = `${start + 1}–${Math.min(start + POSTS_PER_PAGE, total)}`;
+      info.innerHTML = `Showing <strong>${showing}</strong> of <strong>${total}</strong> post${total !== 1 ? "s" : ""}`;
+    }
+
+    // Cards
+    grid.innerHTML = "";
+    if (page.length === 0) {
+      grid.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🔍</div>
+          <h3>No posts found</h3>
+          <p>Try a different keyword or category.</p>
+        </div>`;
+    } else {
+      page.forEach((p, i) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.style.animationDelay = `${i * 60}ms`;
+        card.innerHTML = `
+          <div class="card-img-placeholder" style="background:${p.color}">${p.emoji}</div>
+          <div class="card-body">
+            <div class="card-meta">
+              <span class="category-badge ${categoryClass(p.category)}">${p.category}</span>
+              <span class="card-date">${p.date}</span>
+            </div>
+            <h2>${highlight(p.title, currentSearch)}</h2>
+            <p>${p.desc}</p>
+            <a href="#" class="read-more">Read more →</a>
+          </div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    renderPagination(totalPages);
+  }
+
+  // Highlight search term in title
+  function highlight(text, term) {
+    if (!term) return text;
+    const re = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    return text.replace(re, '<mark style="background:#ffe066;border-radius:2px;padding:0 2px">$1</mark>');
+  }
+
+  // ── RENDER PAGINATION ─────────────────────────────────────────────────
+  function renderPagination(totalPages) {
+    const pag = document.getElementById("pagination");
+    pag.innerHTML = "";
+    if (totalPages <= 1) return;
+
+    const prev = btn("←", "arrow", currentPage === 1);
+    prev.addEventListener("click", () => { currentPage--; renderGrid(); window.scrollTo({top:0,behavior:"smooth"}); });
+    pag.appendChild(prev);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const b = btn(i, "", false, i === currentPage);
+      b.addEventListener("click", () => { currentPage = i; renderGrid(); window.scrollTo({top:0,behavior:"smooth"}); });
+      pag.appendChild(b);
+    }
+
+    const next = btn("→", "arrow", currentPage === totalPages);
+    next.addEventListener("click", () => { currentPage++; renderGrid(); window.scrollTo({top:0,behavior:"smooth"}); });
+    pag.appendChild(next);
+  }
+
+  function btn(label, extra, disabled, active) {
+    const b = document.createElement("button");
+    b.className = "page-btn" + (extra ? " " + extra : "") + (active ? " active" : "");
+    b.textContent = label;
+    b.disabled = !!disabled;
+    return b;
+  }
+
+  // ── EVENTS ────────────────────────────────────────────────────────────
+  document.querySelectorAll(".pill").forEach(p => {
+    p.addEventListener("click", () => {
+      document.querySelectorAll(".pill").forEach(x => x.classList.remove("active"));
+      p.classList.add("active");
+      currentCategory = p.dataset.cat;
+      currentPage = 1;
+      renderGrid();
+    });
+  });
+
+  document.getElementById("searchInput").addEventListener("input", e => {
+    currentSearch = e.target.value.trim();
+    currentPage = 1;
+    renderGrid();
+  });
+
+  // ── INIT ──────────────────────────────────────────────────────────────
+  renderGrid();
+</script>
+</body>
+</html>

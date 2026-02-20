@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow — Stop Managing. Start Finishing.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg: #0b0e1a;
+      --surface: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #e8eaf6;
+      --muted: #9ca3af;
+      --dim: #6b7280;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #a78bfa;
+      --green: #6ee7b7;
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--amber); }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal.delay-1 { transition-delay: 120ms; }
+    .reveal.delay-2 { transition-delay: 240ms; }
+    .reveal.delay-3 { transition-delay: 360ms; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      transition: background 0.4s, backdrop-filter 0.4s, border-color 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(11,14,26,0.9);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      left: 0; right: 0; margin: 0 auto;
+      max-width: 100%;
+      padding: 1rem calc((100% - 1200px) / 2 + 2rem);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text);
+    }
+    .nav-logo .star { font-size: 1.4rem; }
+    .nav-logo span { color: var(--amber); }
+    .nav-links { display: flex; gap: 2.5rem; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--amber); }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--amber), var(--red));
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 0.85rem 2.2rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-body);
+      letter-spacing: 0.02em;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(245,158,11,0.35);
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 30px rgba(245,158,11,0.5); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid rgba(232,234,246,0.25);
+      border-radius: 50px;
+      padding: 0.85rem 2.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      letter-spacing: 0.02em;
+      transition: border-color 0.2s, color 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 8rem 2rem 4rem;
+      overflow: hidden;
+      text-align: center;
+    }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,158,11,0.12) 0%, transparent 70%); pointer-events: none; }
+    .hero-shape {
+      position: absolute;
+      pointer-events: none;
+    }
+    .shape1 {
+      top: 15%; right: 10%;
+      width: 80px; height: 80px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(239,68,68,0.2));
+      border: 1px solid rgba(245,158,11,0.3);
+      animation: float1 6s ease-in-out infinite;
+    }
+    .shape2 {
+      bottom: 20%; left: 8%;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background: rgba(167,139,250,0.15);
+      border: 1px solid rgba(167,139,250,0.3);
+      animation: float2 8s ease-in-out infinite 1s;
+    }
+    .shape3 {
+      top: 42%; left: 5%;
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: rgba(110,231,183,0.2);
+      border: 1px solid rgba(110,231,183,0.3);
+      animation: float3 7s ease-in-out infinite 2s;
+    }
+    .shape4 {
+      bottom: 30%; right: 6%;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: rgba(239,68,68,0.25);
+      border: 1px solid rgba(239,68,68,0.4);
+      animation: float1 9s ease-in-out infinite 3s;
+    }
+    @keyframes float1 { 0%,100%{transform:translateY(0) rotate(12deg)} 50%{transform:translateY(-18px) rotate(16deg)} }
+    @keyframes float2 { 0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(-12px) rotate(-12deg)} }
+    @keyframes float3 { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-22px) scale(1.08)} }
+
+    .hero-inner { position: relative; max-width: 720px; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 50px;
+      padding: 0.4rem 1.2rem;
+      font-size: 0.85rem;
+      color: var(--amber);
+      font-weight: 600;
+      margin-bottom: 2rem;
+      animation: slideDown 0.8s ease 0.1s both;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2.6rem, 6vw, 4.2rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: slideDown 0.8s ease 0.2s both;
+    }
+    .hero-title .gradient {
+      background: linear-gradient(135deg, var(--amber), var(--red));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+      animation: slideDown 0.8s ease 0.35s both;
+    }
+    .hero-btns {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: slideDown 0.8s ease 0.5s both;
+    }
+    .hero-note {
+      margin-top: 1.4rem;
+      color: var(--dim);
+      font-size: 0.85rem;
+      animation: slideDown 0.8s ease 0.65s both;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 4px 20px rgba(245,158,11,0.35), 0 0 0 0 rgba(245,158,11,0.4); }
+      70%  { box-shadow: 0 4px 20px rgba(245,158,11,0.35), 0 0 0 18px rgba(245,158,11,0); }
+      100% { box-shadow: 0 4px 20px rgba(245,158,11,0.35), 0 0 0 0 rgba(245,158,11,0); }
+    }
+    #hero .btn-primary { animation: pulse-ring 2.5s ease-in-out infinite; }
+
+    /* ── SECTION COMMONS ── */
+    section { padding: 6rem 2rem; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-eyebrow {
+      color: var(--amber);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2rem, 4vw, 2.6rem);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .section-header { text-align: center; margin-bottom: 4rem; }
+
+    .divider {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: transform 0.3s, border-color 0.3s, background 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(245,158,11,0.3);
+      background: rgba(255,255,255,0.07);
+    }
+    .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .feature-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+    .feature-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; }
+
+    /* ── REVIEWS ── */
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .review-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: transform 0.3s, background 0.3s;
+    }
+    .review-card:hover { transform: translateY(-4px); background: rgba(255,255,255,0.07); }
+    .review-quote-mark { color: var(--amber); font-size: 1.8rem; margin-bottom: 1rem; line-height: 1; }
+    .review-text { color: #d1d5db; line-height: 1.75; font-size: 0.96rem; font-style: italic; margin-bottom: 1.5rem; }
+    .review-author { display: flex; align-items: center; gap: 0.75rem; }
+    .avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--amber), var(--red));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; color: #fff;
+      flex-shrink: 0;
+    }
+    .author-name { font-weight: 600; font-size: 0.95rem; }
+    .author-role { color: var(--dim); font-size: 0.8rem; }
+
+    /* ── PRICING ── */
+    #pricing { background: transparent; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .price-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      position: relative;
+      overflow: visible;
+      transition: transform 0.3s;
+    }
+    .price-card:hover { transform: translateY(-6px); }
+    .price-card.highlight {
+      border-color: rgba(245,158,11,0.45);
+      background: rgba(245,158,11,0.06);
+      transform: scale(1.04);
+    }
+    .price-card.highlight:hover { transform: scale(1.04) translateY(-6px); }
+    .popular-badge {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, var(--amber), var(--red));
+      color: #fff;
+      border-radius: 50px;
+      padding: 0.3rem 1.2rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .plan-bar { width: 36px; height: 4px; border-radius: 2px; margin-bottom: 1rem; }
+    .plan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; margin-bottom: 0.5rem; }
+    .plan-price { display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 1.5rem; }
+    .plan-amount { font-family: var(--font-display); font-weight: 800; font-size: 2.8rem; }
+    .plan-period { color: var(--dim); font-size: 0.9rem; }
+    .plan-features { list-style: none; margin-bottom: 2rem; }
+    .plan-features li {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: #d1d5db;
+      font-size: 0.9rem;
+    }
+    .plan-features li:last-child { border-bottom: none; }
+    .check { font-weight: 700; }
+    .price-card .btn-primary,
+    .price-card .btn-outline { width: 100%; text-align: center; padding: 0.85rem 1rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3.5rem 2rem 2rem;
+    }
+    .footer-inner { max-width: 1100px; margin: 0 auto; }
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .footer-brand p { color: var(--dim); font-size: 0.9rem; max-width: 220px; line-height: 1.65; margin-top: 0.75rem; }
+    .footer-cols-group { display: flex; gap: 4rem; flex-wrap: wrap; }
+    .footer-col-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .footer-col a {
+      display: block;
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 0.6rem;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--amber); }
+    .social-links { display: flex; gap: 0.75rem; }
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .social-link:hover { background: rgba(245,158,11,0.15); color: var(--amber); border-color: rgba(245,158,11,0.4); }
+    .footer-contact { margin-top: 1.25rem; }
+    .footer-contact a { color: var(--dim); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .footer-contact a:hover { color: var(--amber); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .footer-bottom p { color: #4b5563; font-size: 0.85rem; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .features-grid,
+      .reviews-grid,
+      .pricing-grid { grid-template-columns: 1fr; }
+      .price-card.highlight { transform: scale(1); }
+      .price-card.highlight:hover { transform: translateY(-6px); }
+      .popular-badge { top: -14px; }
+      .footer-cols-group { gap: 2rem; }
+    }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      nav.scrolled { padding: 1rem 1.5rem; }
+      .footer-top { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <a href="#hero" class="nav-logo">
+      <span class="star">✦</span>Task<span>Flow</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <a href="#pricing" class="btn-primary" style="padding:0.6rem 1.5rem;font-size:0.9rem;">Get Started Free</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-shape shape1"></div>
+    <div class="hero-shape shape2"></div>
+    <div class="hero-shape shape3"></div>
+    <div class="hero-shape shape4"></div>
+
+    <div class="hero-inner">
+      <div class="hero-badge">✦ Now with AI prioritization</div>
+      <h1 class="hero-title">
+        Stop managing tasks.<br>
+        <span class="gradient">Start finishing them.</span>
+      </h1>
+      <p class="hero-sub">
+        TaskFlow cuts through the noise so you can focus on what actually moves the needle.
+        Beautifully simple. Surprisingly powerful.
+      </p>
+      <div class="hero-btns">
+        <a href="#pricing" class="btn-primary">Start for Free →</a>
+        <a href="#features" class="btn-outline">Explore Features</a>
+      </div>
+      <p class="hero-note">No credit card required · 14-day Pro trial included</p>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">What makes it different</span>
+        <h2 class="section-title">Built for real work,<br>not just lists</h2>
+      </div>
+      <div class="features-grid">
+
+        <div class="feature-card reveal delay-1">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">Lightning Fast</h3>
+          <p class="feature-desc">Capture tasks in under 2 seconds. Our frictionless interface keeps you in flow state and out of your own way.</p>
+        </div>
+
+        <div class="feature-card reveal delay-2">
+          <div class="feature-icon">🧠</div>
+          <h3 class="feature-title">Smart Prioritization</h3>
+          <p class="feature-desc">AI surfaces what matters most today. Stop deciding what to work on — start actually working on what counts.</p>
+        </div>
+
+        <div class="feature-card reveal delay-3">
+          <div class="feature-icon">🔗</div>
+          <h3 class="feature-title">Team Sync</h3>
+          <p class="feature-desc">Assign, comment, and track in real time. Your whole team stays aligned without a single status meeting.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- REVIEWS -->
+  <section id="reviews">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Loved by thousands</span>
+        <h2 class="section-title">Real people, real results</h2>
+      </div>
+      <div class="reviews-grid">
+
+        <div class="review-card reveal delay-1">
+          <div class="review-quote-mark">❝</div>
+          <p class="review-text">"TaskFlow replaced four different apps for me. I didn't think one tool could do all of this and still feel this good to use."</p>
+          <div class="review-author">
+            <div class="avatar">MC</div>
+            <div>
+              <div class="author-name">Maya Chen</div>
+              <div class="author-role">Product Designer</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card reveal delay-2">
+          <div class="review-quote-mark">❝</div>
+          <p class="review-text">"We shipped 30% faster in the first month. The team sync feature alone is worth the subscription price."</p>
+          <div class="review-author">
+            <div class="avatar">JR</div>
+            <div>
+              <div class="author-name">Jordan Rivera</div>
+              <div class="author-role">Engineering Lead</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card reveal delay-3">
+          <div class="review-quote-mark">❝</div>
+          <p class="review-text">"I've tried everything. TaskFlow is the first app that actually changed how I work — not just where I write things down."</p>
+          <div class="review-author">
+            <div class="avatar">PN</div>
+            <div>
+              <div class="author-name">Priya Nair</div>
+              <div class="author-role">Freelance Consultant</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Simple pricing</span>
+        <h2 class="section-title">Start free. Scale as you grow.</h2>
+      </div>
+      <div class="pricing-grid">
+
+        <!-- FREE -->
+        <div class="price-card reveal delay-1">
+          <div class="plan-bar" style="background:#6ee7b7;"></div>
+          <div class="plan-name">Free</div>
+          <div class="plan-price">
+            <span class="plan-amount" style="color:#6ee7b7;">$0</span>
+            <span class="plan-period">/ forever</span>
+          </div>
+          <ul class="plan-features">
+            <li><span class="check" style="color:#6ee7b7;">✓</span> Up to 50 tasks</li>
+            <li><span class="check" style="color:#6ee7b7;">✓</span> 1 workspace</li>
+            <li><span class="check" style="color:#6ee7b7;">✓</span> Basic prioritization</li>
+            <li><span class="check" style="color:#6ee7b7;">✓</span> Mobile app</li>
+          </ul>
+          <a href="#" class="btn-outline">Get Started</a>
+        </div>
+
+        <!-- PRO -->
+        <div class="price-card highlight reveal delay-2">
+          <div class="popular-badge">MOST POPULAR</div>
+          <div class="plan-bar" style="background:#f59e0b;"></div>
+          <div class="plan-name">Pro</div>
+          <div class="plan-price">
+            <span class="plan-amount" style="color:#f59e0b;">$9</span>
+            <span class="plan-period">/ per month</span>
+          </div>
+          <ul class="plan-features">
+            <li><span class="check" style="color:#f59e0b;">✓</span> Unlimited tasks</li>
+            <li><span class="check" style="color:#f59e0b;">✓</span> 5 workspaces</li>
+            <li><span class="check" style="color:#f59e0b;">✓</span> AI prioritization</li>
+            <li><span class="check" style="color:#f59e0b;">✓</span> Calendar sync</li>
+            <li><span class="check" style="color:#f59e0b;">✓</span> Priority support</li>
+          </ul>
+          <a href="#" class="btn-primary">Start Free Trial</a>
+        </div>
+
+        <!-- TEAM -->
+        <div class="price-card reveal delay-3">
+          <div class="plan-bar" style="background:#a78bfa;"></div>
+          <div class="plan-name">Team</div>
+          <div class="plan-price">
+            <span class="plan-amount" style="color:#a78bfa;">$24</span>
+            <span class="plan-period">/ per month</span>
+          </div>
+          <ul class="plan-features">
+            <li><span class="check" style="color:#a78bfa;">✓</span> Everything in Pro</li>
+            <li><span class="check" style="color:#a78bfa;">✓</span> Unlimited members</li>
+            <li><span class="check" style="color:#a78bfa;">✓</span> Admin controls</li>
+            <li><span class="check" style="color:#a78bfa;">✓</span> Analytics dashboard</li>
+            <li><span class="check" style="color:#a78bfa;">✓</span> SSO &amp; SAML</li>
+          </ul>
+          <a href="#" class="btn-outline">Contact Sales</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+
+        <div class="footer-brand">
+          <a href="#hero" class="nav-logo" style="font-size:1.1rem;">
+            <span class="star" style="font-size:1.2rem;">✦</span>Task<span>Flow</span>
+          </a>
+          <p>The task manager that actually helps you get things done.</p>
+        </div>
+
+        <div class="footer-cols-group">
+          <div class="footer-col">
+            <div class="footer-col-title">Product</div>
+            <a href="#">Features</a>
+            <a href="#">Pricing</a>
+            <a href="#">Changelog</a>
+            <a href="#">Roadmap</a>
+          </div>
+          <div class="footer-col">
+            <div class="footer-col-title">Company</div>
+            <a href="#">About</a>
+            <a href="#">Blog</a>
+            <a href="#">Careers</a>
+            <a href="#">Press</a>
+          </div>
+          <div class="footer-col">
+            <div class="footer-col-title">Support</div>
+            <a href="#">Help Center</a>
+            <a href="#">Contact</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title">Follow Us</div>
+          <div class="social-links">
+            <a href="#" class="social-link" title="Twitter">𝕏</a>
+            <a href="#" class="social-link" title="LinkedIn">in</a>
+            <a href="#" class="social-link" title="YouTube">▶</a>
+            <a href="#" class="social-link" title="Discord">⊕</a>
+          </div>
+          <div class="footer-contact">
+            <a href="mailto:hello@taskflow.app">hello@taskflow.app</a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 TaskFlow, Inc. All rights reserved.</p>
+        <p>Made with ♥ for focused people</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Sticky nav on scroll ──
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // ── Scroll reveal ──
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // Once visible, stop observing
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    reveals.forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
