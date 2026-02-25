@@ -1,1 +1,1 @@
-<img src="elevvo Intership" width="600" />
+<img src="elevvo Intership.jpeg" width="600" />
